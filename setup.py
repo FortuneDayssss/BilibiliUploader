@@ -1,15 +1,19 @@
 from setuptools import setup
-import bilibiliuploader
 
-with open('requirements.txt') as f:
-    requires = f.readlines()
 
 setup(
     name='bilibiliuploader',
-    version=bilibiliuploader.__version__,
+    version="0.0.1",
     packages=['bilibiliuploader', 'bilibiliuploader.util'],
     url='https://github.com/FortuneDayssss/BilibiliUploader',
-    install_requires=requires,
+    install_requires=['certifi==2020.4.5.1',
+                      'chardet==3.0.4',
+                      'idna==2.9',
+                      'pyasn1==0.4.8',
+                      'requests==2.23.0',
+                      'rsa==4.0',
+                      'urllib3==1.25.9',
+                      ],
     license='MIT',
     author='FortuneDayssss',
     author_email='717622995@qq.com',
