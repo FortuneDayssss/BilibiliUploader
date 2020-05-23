@@ -15,6 +15,7 @@ setup(
     author_email='717622995@qq.com',
     description='Simulate pc ugc_assistant for bilibili',
     keywords=['bilibili', 'upload'],
+    data_files=[('.', ['requirements.txt'])],
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
