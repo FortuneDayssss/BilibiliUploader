@@ -7,7 +7,7 @@ with open('requirements.txt') as f:
 setup(
     name='bilibiliuploader',
     version=bilibiliuploader.__version__,
-    packages=['bilibiliuploader'],
+    packages=['bilibiliuploader', 'bilibiliuploader.util'],
     url='https://github.com/FortuneDayssss/BilibiliUploader',
     install_requires=requires,
     license='MIT',
