@@ -13,15 +13,3 @@ class Retry:
                 status = True
                 break
         return status
-
-
-def add_attr(obj):
-    obj.added_attr = "new attr"
-
-if __name__ == '__main__':
-    a = Retry(1, 2)
-    add_attr(a)
-    print(a.added_attr)
-
-
-
