@@ -24,7 +24,7 @@ class BilibiliUploader():
                open_elec: int = 1,
                max_retry: int = 5,
                thread_pool_workers: int = 1):
-        core.upload(self.access_token,
+        return core.upload(self.access_token,
                     self.sid,
                     self.mid,
                     parts,

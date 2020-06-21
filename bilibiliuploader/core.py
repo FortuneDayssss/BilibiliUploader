@@ -264,7 +264,7 @@ def upload(access_token,
     """
     upload video.
 
-    Returns:
+    Args:
         access_token: salt for password encryption.
         sid: rsa public key for password encryption.
         mid: session id.
@@ -279,6 +279,12 @@ def upload(access_token,
         no_reprint: 可否转载.
         open_elec: 充电.
         max_retry: max retry time for each chunk.
+        thread_pool_workers: max upload threads.
+
+    Returns:
+        (aid, bvid)
+        aid: av号
+        bvid: bv号
     """
     if not isinstance(parts, list):
         parts = [parts]
@@ -344,5 +350,7 @@ def upload(access_token,
     print(r.status_code)
     print(r.content.decode())
 
+    data = r.json()["data"]
+    return data["aid"], data["bvid"]
 
 
