@@ -129,7 +129,7 @@ thread_pool_workers: int = 1 多视频并行上传最大线程数，默认为串
 https://github.com/FortuneDayssss/BilibiliUploader/wiki/Bilibili%E5%88%86%E5%8C%BA%E5%88%97%E8%A1%A8
 
 
-### edit
+### Edit
 
 avid: av号 (av/bv提供其一即可)
 
