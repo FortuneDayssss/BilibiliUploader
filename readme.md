@@ -1,6 +1,29 @@
 ## BilibiliUploader
 模拟B站pc投稿工具进行投稿
 
+## 登录
+
+支持密码登录以及access_token登录
+
+短时间内使用账号密码大量登录会触发验证码，由于验证码识别尚未实现，建议不要短时间内使用账号密码大量登录（大约10次/分钟以上）
+
+```
+uploader = BilibiliUploader()
+
+# 账号密码登录
+uploader.login("username_example", "password_example")
+
+# 使用存有access_token的json文件登录
+uploader.login_by_access_token_file("/YOURFILEPATH/bililogin.json")
+
+# 直接使用access_token登录，refresh_token可以不提供，没有refresh_token更新时间的话access_token会在获取的30天后过期(todo: refresh)
+uploader.login_by_access_token("ACCESS_TOKEN")
+uploader.login_by_access_token("ACCESS_TOKEN", "REFRESH_TOKEN")
+
+# 登录后获取access_token与refresh_token
+access_token, refresh_token = uploader.save_login_data(file_name="/YOURFOLDER/bililogin.json")
+```
+
 ## Example
 ```
 from bilibiliuploader.bilibiliuploader import BilibiliUploader
@@ -8,8 +31,11 @@ from bilibiliuploader.core import VideoPart
 
 if __name__ == '__main__':
     uploader = BilibiliUploader()
+    
+    # 登录
     uploader.login("username_example", "password_example")
 
+    # 处理视频文件
     parts = []
     parts.append(VideoPart(
         path="C:/Users/xxx/Videos/1.mp4",
@@ -21,7 +47,9 @@ if __name__ == '__main__':
         title="分p名:p2",
         desc="这里是p2的简介"
     ))
-    uploader.upload(
+    
+    # 上传
+    avid, bvid = uploader.upload(
         parts=parts,
         copyright=2,
         title='py多p上传测试1',
@@ -30,6 +58,29 @@ if __name__ == '__main__':
         desc="python多p上传测试",
         source='https://www.github.com/FortuneDayssss',
         thread_pool_workers=5,
+    )
+    
+    
+    # 修改已有投稿
+    parts = []
+    parts.append(VideoPart(
+        path="C:/Users/xxx/Videos/1.mp4",
+        title="edit分p名:p1",
+        desc="这里是p1的简介"
+    ))
+    parts.append(VideoPart(
+        path="C:/Users/xxx/Videos/2.mp4",
+        title="edit分p名:p2",
+        desc="这里是p2的简介"
+    ))
+    uploader.edit(
+        avid=414167215,
+        parts=parts,
+        copyright=2,
+        title='edit 测试1',
+        tag=",".join(["python", "测试", "edit"]),
+        desc="python多p edit测试",
+        source='https://www.github.com/FortuneDayssss',
     )
 ```
 
@@ -76,6 +127,40 @@ thread_pool_workers: int = 1 多视频并行上传最大线程数，默认为串
 
 关于投稿分区tid号码可以从这里查询：
 https://github.com/FortuneDayssss/BilibiliUploader/wiki/Bilibili%E5%88%86%E5%8C%BA%E5%88%97%E8%A1%A8
+
+
+### edit
+
+avid: av号 (av/bv提供其一即可)
+
+bvid: bv号 (av/bv提供其一即可)
+
+parts: VideoPart list (不填写参数则不修改)
+
+insert_index: 新视频分P位置(不填写参数则从最后追加)
+
+copyright: 原创/转载 (不填写参数则不修改)
+
+title: 投稿标题 (不填写参数则不修改)
+
+tid: 分区id (不填写参数则不修改)
+
+tag: 标签 (不填写参数则不修改)
+
+desc: 投稿简介 (不填写参数则不修改)
+
+source: 转载地址 (不填写参数则不修改)
+
+cover: 封面 (不填写参数则不修改)
+
+no_reprint: 可否转载 (不填写参数则不修改)
+
+open_elec: 充电 (不填写参数则不修改)
+
+max_retry: 上传重试次数
+
+thread_pool_workers: 多视频并行上传最大线程数，默认为串行上传
+
 
 ## reference
 [记一次B站投稿工具逆向](https://fortunedayssss.github.io/2020/05/20/%E8%AE%B0%E4%B8%80%E6%AC%A1B%E7%AB%99%E6%8A%95%E7%A8%BF%E5%B7%A5%E5%85%B7%E9%80%86%E5%90%91.html). 
