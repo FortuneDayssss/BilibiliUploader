@@ -75,8 +75,7 @@ max_retry: int = 5 上传重试次数
 thread_pool_workers: int = 1 多视频并行上传最大线程数，默认为串行上传
 
 关于投稿分区tid号码可以从这里查询：
-https://github.com/uupers/BiliSpider/wiki/%E8%A7%86%E9%A2%91%E5%88%86%E5%8C%BA%E5%AF%B9%E5%BA%94%E8%A1%A8
-
+https://github.com/FortuneDayssss/BilibiliUploader/wiki/Bilibili%E5%88%86%E5%8C%BA%E5%88%97%E8%A1%A8
 
 ## reference
 [记一次B站投稿工具逆向](https://fortunedayssss.github.io/2020/05/20/%E8%AE%B0%E4%B8%80%E6%AC%A1B%E7%AB%99%E6%8A%95%E7%A8%BF%E5%B7%A5%E5%85%B7%E9%80%86%E5%90%91.html). 
