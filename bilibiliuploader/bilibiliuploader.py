@@ -1,4 +1,5 @@
 import bilibiliuploader.core as core
+import bilibiliuploader.util.persist as persist
 
 
 class BilibiliUploader():
@@ -9,7 +10,11 @@ class BilibiliUploader():
         self.mid = None
 
     def login(self, username, password):
-        self.access_token, self.refresh_token, self.sid, self.mid = core.login(username, password)
+        self.access_token, self.refresh_token, self.sid, self.mid = persist.load_login_info()
+        print(self.access_token)
+        if self.access_token == "":
+            self.access_token, self.refresh_token, self.sid, self.mid = core.login(username, password)
+            persist.save_login_info(self.access_token, self.refresh_token, self.sid, self.mid)
 
     def upload(self,
                parts,
