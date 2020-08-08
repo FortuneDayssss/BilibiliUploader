@@ -255,6 +255,7 @@ def upload(access_token,
            tid: int,
            tag: str,
            desc: str,
+           dtime: int,
            source: str = '',
            cover: str = '',
            no_reprint: int = 0,
@@ -322,7 +323,8 @@ def upload(access_token,
         'tag': tag,
         'tid': tid,
         'title': title,
-        'videos': []
+        'videos': [],
+        'dtime': dtime
     }
     for video_part in parts:
         post_data['videos'].append({
