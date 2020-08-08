@@ -1,4 +1,5 @@
 import bilibiliuploader.core as core
+from bilibiliuploader.util import cipher
 import json
 
 
@@ -66,3 +67,50 @@ class BilibiliUploader():
                     open_elec,
                     max_retry,
                     thread_pool_workers)
+
+    def edit(self,
+             avid=None,
+             bvid=None,
+             parts=None,
+             insert_index=None,
+             copyright=None,
+             title=None,
+             tid=None,
+             tag=None,
+             desc=None,
+             source=None,
+             cover=None,
+             no_reprint=None,
+             open_elec=None,
+             max_retry: int = 5,
+             thread_pool_workers: int = 1):
+
+        if not avid and not bvid:
+            print("please provide avid or bvid")
+            return None, None
+        if not avid:
+            avid = cipher.bv2av(bvid)
+        if not isinstance(parts, list):
+            parts = [parts]
+        if type(avid) is str:
+            avid = int(avid)
+        core.edit_videos(
+            self.access_token,
+            self.sid,
+            self.mid,
+            avid,
+            bvid,
+            parts,
+            insert_index,
+            copyright,
+            title,
+            tid,
+            tag,
+            desc,
+            source,
+            cover,
+            no_reprint,
+            open_elec,
+            max_retry,
+            thread_pool_workers
+        )

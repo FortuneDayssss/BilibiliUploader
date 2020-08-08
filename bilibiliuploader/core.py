@@ -336,9 +336,9 @@ def upload(access_token,
     upload video.
 
     Args:
-        access_token: salt for password encryption.
-        sid: rsa public key for password encryption.
-        mid: session id.
+        access_token: oauth2 access token.
+        sid: session id.
+        mid: member id.
         parts: VideoPart list.
         copyright: 原创/转载.
         title: 投稿标题.
@@ -374,7 +374,7 @@ def upload(access_token,
             print("video part {} finished, status: {}".format(t_obj.video_part.title, t_obj.result()))
             if not status:
                 print("upload failed")
-                return False
+                return None, None
 
     # submit
     headers = {
@@ -425,3 +425,185 @@ def upload(access_token,
     return data["aid"], data["bvid"]
 
 
+def get_post_data(access_token, sid, avid):
+    headers = {
+        'Connection': 'keep-alive',
+        'Host': 'member.bilibili.com',
+        'Accept-Encoding': 'gzip,deflate',
+        'User-Agent': '',
+    }
+
+    params = {
+        "access_key": access_token,
+        "aid": avid,
+        "build": "1054"
+    }
+
+    params["sign"] = cipher.sign_dict(params, APPSECRET)
+
+    r = requests.get(
+        url="http://member.bilibili.com/x/client/archive/view",
+        headers=headers,
+        params=params,
+        cookies={
+            'sid': sid
+        }
+    )
+
+    return r.json()["data"]
+
+
+def edit_videos(
+        access_token,
+        sid,
+        mid,
+        avid=None,
+        bvid=None,
+        parts=None,
+        insert_index=None,
+        copyright=None,
+        title=None,
+        tid=None,
+        tag=None,
+        desc=None,
+        source=None,
+        cover=None,
+        no_reprint=None,
+        open_elec=None,
+        max_retry: int = 5,
+        thread_pool_workers: int = 1):
+    """
+    insert videos into existed post.
+
+    Args:
+        access_token: oauth2 access token.
+        sid: session id.
+        mid: member id.
+        avid: av number,
+        bvid: bv string,
+        parts: VideoPart list.
+        insert_index: new video index.
+        copyright: 原创/转载.
+        title: 投稿标题.
+        tid: 分区id.
+        tag: 标签.
+        desc: 投稿简介.
+        source: 转载地址.
+        cover: cover url.
+        no_reprint: 可否转载.
+        open_elec: 充电.
+        max_retry: max retry time for each chunk.
+        thread_pool_workers: max upload threads.
+
+    Returns:
+        (aid, bvid)
+        aid: av号
+        bvid: bv号
+    """
+    if not avid and not bvid:
+        print("please provide avid or bvid")
+        return None, None
+    if not avid:
+        avid = cipher.bv2av(bvid)
+    if not isinstance(parts, list):
+        parts = [parts]
+    if type(avid) is str:
+        avid = int(avid)
+
+    post_video_data = get_post_data(access_token, sid, avid)
+
+    status = True
+    with ThreadPoolExecutor(max_workers=thread_pool_workers) as tpe:
+        t_list = []
+        for video_part in parts:
+            print("upload {} added in pool".format(video_part.title))
+            t_obj = tpe.submit(upload_video_part, access_token, sid, mid, video_part, max_retry)
+            t_obj.video_part = video_part
+            t_list.append(t_obj)
+
+        for t_obj in as_completed(t_list):
+            status = status and t_obj.result()
+            print("video part {} finished, status: {}".format(t_obj.video_part.title, t_obj.result()))
+            if not status:
+                print("upload failed")
+                return None, None
+
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'User-Agent': '',
+    }
+    submit_data = {
+        'aid': avid,
+        'build': 1054,
+        'copyright': post_video_data["archive"]["copyright"],
+        'cover': post_video_data["archive"]["cover"],
+        'desc': post_video_data["archive"]["desc"],
+        'no_reprint': post_video_data["archive"]["no_reprint"],
+        'open_elec': post_video_data["archive_elec"]["state"], # open_elec not tested
+        'source': post_video_data["archive"]["source"],
+        'tag': post_video_data["archive"]["tag"],
+        'tid': post_video_data["archive"]["tid"],
+        'title': post_video_data["archive"]["title"],
+        'videos': post_video_data["videos"]
+    }
+
+    # edit archive data
+    if copyright:
+        submit_data["copyright"] = copyright
+    if title:
+        submit_data["title"] = title
+    if tid:
+        submit_data["tid"] = tid
+    if tag:
+        submit_data["tag"] = tag
+    if desc:
+        submit_data["desc"] = desc
+    if source:
+        submit_data["source"] = source
+    if cover:
+        submit_data["cover"] = cover
+    if no_reprint:
+        submit_data["no_reprint"] = no_reprint
+    if open_elec:
+        submit_data["open_elec"] = open_elec
+
+    if type(insert_index) is int:
+        for video_part in parts:
+            submit_data['videos'].insert(insert_index, {
+                "desc": video_part.desc,
+                "filename": video_part.server_file_name,
+                "title": video_part.title
+            })
+    elif insert_index is None:
+        for video_part in parts:
+            submit_data['videos'].append({
+                "desc": video_part.desc,
+                "filename": video_part.server_file_name,
+                "title": video_part.title
+            })
+    else:
+        print("wrong insert index")
+        return None, None
+
+    params = {
+        'access_key': access_token,
+    }
+    params['sign'] = cipher.sign_dict(params, APPSECRET)
+    r = requests.post(
+        url="http://member.bilibili.com/x/vu/client/edit",
+        params=params,
+        headers=headers,
+        verify=False,
+        cookies={
+            'sid': sid
+        },
+        json=submit_data,
+    )
+
+    print("insert submit")
+    print(r.status_code)
+    print(r.content.decode())
+
+    data = r.json()["data"]
+    return data["aid"], data["bvid"]
