@@ -71,6 +71,39 @@ def get_key():
     return r_data['hash'], r_data['key'], r.cookies['sid']
 
 
+def get_capcha(sid, file_name=None):
+    headers = {
+        'User-Agent': '',
+        'Accept-Encoding': 'gzip,deflate',
+    }
+
+    params = {
+        'appkey': APPKEY,
+        'platform': 'pc',
+        'ts': str(int(datetime.now().timestamp()))
+    }
+    params['sign'] = cipher.sign_dict(params, APPSECRET)
+
+    r = requests.get(
+        "https://passport.bilibili.com/captcha",
+        headers=headers,
+        params=params,
+        cookies={
+            'sid': sid
+        }
+    )
+
+    print(r.status_code)
+
+    capcha_data = r.content
+
+    if file_name is not None:
+        with open(file_name, 'wb+') as f:
+            f.write(capcha_data)
+
+    return r.cookies['JSESSIONID'], capcha_data
+
+
 def login(username, password):
     """
     bilibili login.
@@ -83,6 +116,7 @@ def login(username, password):
         refresh_token: token for refresh access_token.
         sid: session id.
         mid: member id.
+        expires_in: access token expire time (30 days)
     """
     hash, pubkey, sid = get_key()
 
@@ -119,7 +153,44 @@ def login(username, password):
         }
     )
     login_data = r.json()['data']
-    return login_data['access_token'], login_data['refresh_token'], sid, login_data['mid'],
+    return login_data['access_token'], login_data['refresh_token'], sid, login_data['mid'], login_data["expires_in"]
+
+
+def login_by_access_token(access_token):
+    """
+    bilibili access token login.
+    Args:
+        access_token: Bilibili access token got by previous username/password login.
+
+    Returns:
+        sid: session id.
+        mid: member id.
+        expires_in: access token expire time
+    """
+    headers = {
+        'Connection': 'keep-alive',
+        'Accept-Encoding': 'gzip,deflate',
+        'Host': 'passport.bilibili.com',
+        'User-Agent': '',
+    }
+
+    login_params = {
+        'appkey': APPKEY,
+        'access_token': access_token,
+        'platform': "pc",
+        'ts': str(int(datetime.now().timestamp())),
+    }
+    login_params['sign'] = cipher.sign_dict(login_params, APPSECRET)
+
+    r = requests.get(
+        url="https://passport.bilibili.com/api/oauth2/info",
+        headers=headers,
+        params=login_params
+    )
+
+    login_data = r.json()['data']
+
+    return r.cookies['sid'], login_data['mid'], login_data["expires_in"]
 
 
 def upload_chunk(upload_url, server_file_name, local_file_name, chunk_data, chunk_size, chunk_id, chunk_total_num):
