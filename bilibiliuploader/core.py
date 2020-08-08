@@ -601,7 +601,7 @@ def edit_videos(
         json=submit_data,
     )
 
-    print("insert submit")
+    print("edit submit")
     print(r.status_code)
     print(r.content.decode())
 
