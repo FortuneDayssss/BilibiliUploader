@@ -569,8 +569,8 @@ def edit_videos(
         submit_data["open_elec"] = open_elec
 
     if type(insert_index) is int:
-        for video_part in parts:
-            submit_data['videos'].insert(insert_index, {
+        for i, video_part in enumerate(parts):
+            submit_data['videos'].insert(insert_index + i, {
                 "desc": video_part.desc,
                 "filename": video_part.server_file_name,
                 "title": video_part.title
