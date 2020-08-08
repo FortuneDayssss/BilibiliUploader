@@ -1,7 +1,7 @@
 from bilibiliuploader.core import *
 from bilibiliuploader.util import cipher
 
-TAG_INFO_ADDR = "http://member.bilibili.com/x/client/archive/pre"
+TYPE_INFO_ADDR = "http://member.bilibili.com/x/client/archive/pre"
 
 
 def get_type_info(access_key):
@@ -13,7 +13,7 @@ def get_type_info(access_key):
     tag_get_data["sign"] = cipher.sign_dict(tag_get_data, APPSECRET)
 
     r = requests.get(
-        url=TAG_INFO_ADDR,
+        url=TYPE_INFO_ADDR,
         params=tag_get_data
     )
 
@@ -45,6 +45,3 @@ def get_type_info(access_key):
 # Script for simply generating markdown string about Bilibili video type
 if __name__ == '__main__':
     get_type_info("YOUR_ACCESS_TOKEN")
-
-
-
