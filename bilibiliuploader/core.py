@@ -193,6 +193,41 @@ def login_by_access_token(access_token):
     return r.cookies['sid'], login_data['mid'], login_data["expires_in"]
 
 
+def upload_cover(access_token, sid, cover_file_path):
+    with open(cover_file_path, "rb") as f:
+        cover_pic = f.read()
+
+    headers = {
+        'Connection': 'keep-alive',
+        'Host': 'member.bilibili.com',
+        'Accept-Encoding': 'gzip,deflate',
+        'User-Agent': '',
+    }
+
+    params = {
+        "access_key": access_token,
+    }
+
+    params["sign"] = cipher.sign_dict(params, APPSECRET)
+
+    files = {
+        'file': ("cover.png", cover_pic, "Content-Type: image/png"),
+    }
+
+    r = requests.post(
+        "http://member.bilibili.com/x/vu/client/cover/up",
+        headers=headers,
+        params=params,
+        files=files,
+        cookies={
+            'sid': sid
+        },
+        verify=False,
+    )
+
+    return r.json()["data"]["url"]
+
+
 def upload_chunk(upload_url, server_file_name, local_file_name, chunk_data, chunk_size, chunk_id, chunk_total_num):
     """
     upload video chunk.
@@ -346,7 +381,7 @@ def upload(access_token,
         tag: 标签.
         desc: 投稿简介.
         source: 转载地址.
-        cover: cover url.
+        cover: 封面图片文件路径.
         no_reprint: 可否转载.
         open_elec: 充电.
         max_retry: max retry time for each chunk.
@@ -375,6 +410,15 @@ def upload(access_token,
             if not status:
                 print("upload failed")
                 return None, None
+
+    # cover
+    if os.path.isfile(cover):
+        try:
+            cover = upload_cover(access_token, sid, cover)
+        except:
+            cover = ''
+    else:
+        cover = ''
 
     # submit
     headers = {

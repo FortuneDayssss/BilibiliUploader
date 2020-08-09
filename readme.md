@@ -83,6 +83,7 @@ if __name__ == '__main__':
         tag=",".join(["python", "测试", "edit"]),
         desc="python多p edit测试",
         source='https://www.github.com/FortuneDayssss',
+        cover='/cover_folder/cover.png',
     )
 ```
 
@@ -117,7 +118,7 @@ VideoPart代表投稿内各个分p
 
 * source: int, 转载地址
 
-* cover: int, 封面，TODO（暂时鸽了有时间再做）
+* cover: str, 封面图片路径，若路径不正确则默认封面为空
 
 * no_reprint: int = 0,视频是否禁止转载标志0无1禁止
 
@@ -150,7 +151,7 @@ VideoPart代表投稿内各个分p
 
 * source: 转载地址 (不填写参数则不修改)
 
-* cover: 封面 (不填写参数则不修改)
+* cover: 封面路径 (不填写参数则不修改)
 
 * no_reprint: 可否转载 (不填写参数则不修改)
 
