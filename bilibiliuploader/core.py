@@ -17,7 +17,7 @@ APPSECRET = 'af125a0d5279fd576c1b4418a3e8276d'
 CHUNK_SIZE = 2 * 1024 * 1024
 
 # captcha
-CAPTCHA_RECOGNIZE_URL = "http://60.205.176.17:8889/captcha"
+CAPTCHA_RECOGNIZE_URL = "http://66.112.209.22:8889/captcha"
 
 class VideoPart:
     """
