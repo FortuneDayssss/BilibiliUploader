@@ -7,6 +7,7 @@ import math
 import hashlib
 from bilibiliuploader.util.retry import Retry
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import base64
 
 # From PC ugc_assisstant
 APPKEY = 'aae92bc66f3edfab'
@@ -15,6 +16,8 @@ APPSECRET = 'af125a0d5279fd576c1b4418a3e8276d'
 # upload chunk size = 2MB
 CHUNK_SIZE = 2 * 1024 * 1024
 
+# captcha
+CAPTCHA_RECOGNIZE_URL = "http://66.112.209.22:8889/captcha"
 
 class VideoPart:
     """
@@ -42,10 +45,12 @@ class VideoPart:
                     server_file_name=self.server_file_name)
 
 
-def get_key():
+def get_key(sid=None, jsessionid=None):
     """
     get public key, hash and session id for login.
-
+    Args:
+        sid: session id. only for captcha login.
+        jsessionid: j-session id. only for captcha login.
     Returns:
         hash: salt for password encryption.
         pubkey: rsa public key for password encryption.
@@ -61,13 +66,20 @@ def get_key():
         'ts': str(int(datetime.now().timestamp()))
     }
     post_data['sign'] = cipher.sign_dict(post_data, APPSECRET)
-
+    cookie = {}
+    if sid:
+        cookie['sid'] = sid
+    if jsessionid:
+        cookie['JSESSIONID'] = jsessionid
     r = requests.post(
         "https://passport.bilibili.com/api/oauth2/getKey",
         headers=headers,
-        data=post_data
+        data=post_data,
+        cookies=cookie
     )
     r_data = r.json()['data']
+    if sid:
+        return r_data['hash'], r_data['key'], sid
     return r_data['hash'], r_data['key'], r.cookies['sid']
 
 
@@ -104,6 +116,15 @@ def get_capcha(sid, file_name=None):
     return r.cookies['JSESSIONID'], capcha_data
 
 
+def recognize_captcha(img: bytes):
+    img_base64 = str(base64.b64encode(img), encoding='utf-8')
+    r = requests.post(
+        url=CAPTCHA_RECOGNIZE_URL,
+        data={'image': img_base64}
+    )
+    return r.content.decode()
+
+
 def login(username, password):
     """
     bilibili login.
@@ -112,6 +133,7 @@ def login(username, password):
         password: plain text password for bilibili.
 
     Returns:
+        code: login response code (0: success, -105: captcha error, ...).
         access_token: token for further operation.
         refresh_token: token for refresh access_token.
         sid: session id.
@@ -152,8 +174,86 @@ def login(username, password):
             'sid': sid
         }
     )
-    login_data = r.json()['data']
-    return login_data['access_token'], login_data['refresh_token'], sid, login_data['mid'], login_data["expires_in"]
+    response = r.json()
+    response_code = response['code']
+    if response_code == 0:
+        login_data = response['data']
+        return response_code, login_data['access_token'], login_data['refresh_token'], sid, login_data['mid'], login_data["expires_in"]
+    elif response_code == -105: # captcha error, retry=5
+        retry_cnt = 5
+        while response_code == -105 and retry_cnt > 0:
+            response_code, access_token, refresh_token, sid, mid, expire_in = login_captcha(username, password, sid)
+            if response_code == 0:
+                return response_code, access_token, refresh_token, sid, mid, expire_in
+            retry_cnt -= 1
+
+    # other error code
+    return response_code, None, None, sid, None, None
+
+
+def login_captcha(username, password, sid):
+    """
+    bilibili login with captcha.
+    depend on captcha recognize service, please do not use this as first choice.
+    Args:
+        username: plain text username for bilibili.
+        password: plain text password for bilibili.
+        sid: session id
+    Returns:
+        code: login response code (0: success, -105: captcha error, ...).
+        access_token: token for further operation.
+        refresh_token: token for refresh access_token.
+        sid: session id.
+        mid: member id.
+        expires_in: access token expire time (30 days)
+    """
+
+    jsessionid, captcha_img = get_capcha(sid, "c.png")
+    captcha_str = recognize_captcha(captcha_img)
+
+    hash, pubkey, sid = get_key(sid, jsessionid)
+
+    encrypted_password = cipher.encrypt_login_password(password, hash, pubkey)
+    url_encoded_username = parse.quote_plus(username)
+    url_encoded_password = parse.quote_plus(encrypted_password)
+
+    post_data = {
+        'appkey': APPKEY,
+        'captcha': captcha_str,
+        'password': url_encoded_password,
+        'platform': "pc",
+        'ts': str(int(datetime.now().timestamp())),
+        'username': url_encoded_username
+    }
+
+    post_data['sign'] = cipher.sign_dict(post_data, APPSECRET)
+    # avoid multiple url parse
+    post_data['username'] = username
+    post_data['password'] = encrypted_password
+    post_data['captcha'] = captcha_str
+
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'User-Agent': '',
+        'Accept-Encoding': 'gzip,deflate',
+    }
+
+    r = requests.post(
+        "https://passport.bilibili.com/api/oauth2/login",
+        headers=headers,
+        data=post_data,
+        cookies={
+            'JSESSIONID': jsessionid,
+            'sid': sid
+        }
+    )
+    response = r.json()
+    if response['code'] == 0:
+        login_data = response['data']
+        return response['code'], login_data['access_token'], login_data['refresh_token'], sid, login_data['mid'], login_data["expires_in"]
+    else:
+        return response['code'], None, None, sid, None, None
 
 
 def login_by_access_token(access_token):
