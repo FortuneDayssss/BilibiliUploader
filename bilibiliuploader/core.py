@@ -83,7 +83,7 @@ def get_key(sid=None, jsessionid=None):
     return r_data['hash'], r_data['key'], r.cookies['sid']
 
 
-def get_capcha(sid, file_name=None):
+def get_capcha(sid):
     headers = {
         'User-Agent': '',
         'Accept-Encoding': 'gzip,deflate',
@@ -108,10 +108,6 @@ def get_capcha(sid, file_name=None):
     print(r.status_code)
 
     capcha_data = r.content
-
-    if file_name is not None:
-        with open(file_name, 'wb+') as f:
-            f.write(capcha_data)
 
     return r.cookies['JSESSIONID'], capcha_data
 
