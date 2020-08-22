@@ -208,7 +208,7 @@ def login_captcha(username, password, sid):
         expires_in: access token expire time (30 days)
     """
 
-    jsessionid, captcha_img = get_capcha(sid, "c.png")
+    jsessionid, captcha_img = get_capcha(sid)
     captcha_str = recognize_captcha(captcha_img)
 
     hash, pubkey, sid = get_key(sid, jsessionid)
