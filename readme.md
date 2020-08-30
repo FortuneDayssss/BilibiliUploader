@@ -3,6 +3,10 @@
 
 关于投稿分区tid号码可以从这里查询：https://github.com/FortuneDayssss/BilibiliUploader/wiki/Bilibili%E5%88%86%E5%8C%BA%E5%88%97%E8%A1%A8
 
+## 海外DNS无法解析问题
+
+海外的DNS有时无法解析upcdn-szhw.bilivideo.com域名导致上传失败，此时可以考虑将DNS服务器临时改为1.2.4.8
+
 ## 登录
 
 支持密码登录以及access_token登录
