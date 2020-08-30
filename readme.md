@@ -1,7 +1,9 @@
 ## BilibiliUploader
 模拟B站pc投稿工具进行投稿
 
-关于投稿分区tid号码可以从这里查询：https://github.com/FortuneDayssss/BilibiliUploader/wiki/Bilibili%E5%88%86%E5%8C%BA%E5%88%97%E8%A1%A8
+## B站分区tid号码查询
+
+https://github.com/FortuneDayssss/BilibiliUploader/wiki/Bilibili%E5%88%86%E5%8C%BA%E5%88%97%E8%A1%A8
 
 ## 海外DNS无法解析问题
 
