@@ -351,19 +351,22 @@ def upload_chunk(upload_url, server_file_name, local_file_name, chunk_data, chun
         'file': (local_file_name, chunk_data, 'application/octet-stream')
     }
 
-    r = requests.post(
-        url=upload_url,
-        files=files,
-        cookies={
-            'PHPSESSID': server_file_name
-        },
-    )
-    print(r.status_code)
-    print(r.content)
+    try:
+        r = requests.post(
+            url=upload_url,
+            files=files,
+            cookies={
+                'PHPSESSID': server_file_name
+            },
+        )
+        print(r.status_code)
+        print(r.content)
 
-    if r.status_code == 200 and r.json()['OK'] == 1:
-        return True
-    else:
+        if r.status_code == 200 and r.json()['OK'] == 1:
+            return True
+        else:
+            return False
+    except Exception as e:
         return False
 
 
