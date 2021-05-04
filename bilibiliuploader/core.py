@@ -688,6 +688,15 @@ def edit_videos(
         'videos': post_video_data["videos"]
     }
 
+    # cover
+    if os.path.isfile(cover):
+        try:
+            cover = upload_cover(access_token, sid, cover)
+        except:
+            cover = ''
+    else:
+        cover = ''
+
     # edit archive data
     if copyright:
         submit_data["copyright"] = copyright
