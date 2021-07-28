@@ -163,7 +163,7 @@ def login(username, password):
     }
 
     r = requests.post(
-        "https://passport.bilibili.com/api/oauth2/login",
+        "https://passport.bilibili.com/api/v3/oauth2/login",
         headers=headers,
         data=post_data,
         cookies={
@@ -173,7 +173,7 @@ def login(username, password):
     response = r.json()
     response_code = response['code']
     if response_code == 0:
-        login_data = response['data']
+        login_data = response['data']['token_info']
         return response_code, login_data['access_token'], login_data['refresh_token'], sid, login_data['mid'], login_data["expires_in"]
     elif response_code == -105: # captcha error, retry=5
         retry_cnt = 5
