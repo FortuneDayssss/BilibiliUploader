@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='bilibiliuploader',
-    version="0.0.4",
+    version="0.0.6",
     packages=['bilibiliuploader', 'bilibiliuploader.util'],
     url='https://github.com/FortuneDayssss/BilibiliUploader',
     install_requires=['certifi>=2020.4.5.1',

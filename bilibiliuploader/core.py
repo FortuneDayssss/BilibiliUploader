@@ -45,7 +45,7 @@ class VideoPart:
                     server_file_name=self.server_file_name)
 
 
-def get_key(sid=None, jsessionid=None):
+def get_key_old(sid=None, jsessionid=None):
     """
     get public key, hash and session id for login.
     Args:
@@ -72,15 +72,37 @@ def get_key(sid=None, jsessionid=None):
     if jsessionid:
         cookie['JSESSIONID'] = jsessionid
     r = requests.post(
-        "https://passport.bilibili.com/api/oauth2/getKey",
+        # "https://passport.bilibili.com/api/oauth2/getKey",
+        "https://passport.bilibili.com/x/passport-login/web/key",
         headers=headers,
         data=post_data,
         cookies=cookie
     )
+    print(r.content.decode())
     r_data = r.json()['data']
     if sid:
         return r_data['hash'], r_data['key'], sid
     return r_data['hash'], r_data['key'], r.cookies['sid']
+
+
+def get_key():
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': "application/json, text/javascript, */*; q=0.01"
+    }
+    params_data = {
+        'appkey': APPKEY,
+        'platform': "pc",
+        'ts': str(int(datetime.now().timestamp()))
+    }
+    params_data['sign'] = cipher.sign_dict(params_data, APPSECRET)
+    r = requests.get(
+        "https://passport.bilibili.com/x/passport-login/web/key",
+        headers=headers,
+        params=params_data
+    )
+    r_data = r.json()['data']
+    return r_data['hash'], r_data['key'], ''
 
 
 def get_capcha(sid):
@@ -163,7 +185,8 @@ def login(username, password):
     }
 
     r = requests.post(
-        "https://passport.bilibili.com/api/v3/oauth2/login",
+        # "https://passport.bilibili.com/api/v3/oauth2/login",
+        "https://passport.bilibili.com/x/passport-login/oauth2/login",
         headers=headers,
         data=post_data,
         cookies={
