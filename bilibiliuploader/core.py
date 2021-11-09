@@ -10,14 +10,17 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import base64
 
 # From PC ugc_assisstant
-APPKEY = 'aae92bc66f3edfab'
-APPSECRET = 'af125a0d5279fd576c1b4418a3e8276d'
+# APPKEY = 'aae92bc66f3edfab'
+# APPSECRET = 'af125a0d5279fd576c1b4418a3e8276d'
+APPKEY = '1d8b6e7d45233436'
+APPSECRET = '560c52ccd288fed045859ed18bffd973'
+LOGIN_APPKEY = '783bbb7264451d82'
 
 # upload chunk size = 2MB
 CHUNK_SIZE = 2 * 1024 * 1024
 
 # captcha
-CAPTCHA_RECOGNIZE_URL = "http://66.112.209.22:8889/captcha"
+CAPTCHA_RECOGNIZE_URL = "NOT SUPPORT"
 
 class VideoPart:
     """
@@ -91,11 +94,10 @@ def get_key():
         'Accept': "application/json, text/javascript, */*; q=0.01"
     }
     params_data = {
-        'appkey': APPKEY,
-        'platform': "pc",
-        'ts': str(int(datetime.now().timestamp()))
+        'appkey': LOGIN_APPKEY,
+        # 'ts': str(int(datetime.now().timestamp()))
     }
-    params_data['sign'] = cipher.sign_dict(params_data, APPSECRET)
+    params_data['sign'] = cipher.login_sign_dict_bin(params_data)
     r = requests.get(
         "https://passport.bilibili.com/x/passport-login/web/key",
         headers=headers,
@@ -165,14 +167,13 @@ def login(username, password):
     url_encoded_password = parse.quote_plus(encrypted_password)
 
     post_data = {
-        'appkey': APPKEY,
+        'appkey': LOGIN_APPKEY,
         'password': url_encoded_password,
-        'platform': "pc",
         'ts': str(int(datetime.now().timestamp())),
         'username': url_encoded_username
     }
 
-    post_data['sign'] = cipher.sign_dict(post_data, APPSECRET)
+    post_data['sign'] = cipher.login_sign_dict_bin(post_data)
     # avoid multiple url parse
     post_data['username'] = username
     post_data['password'] = encrypted_password
@@ -189,9 +190,6 @@ def login(username, password):
         "https://passport.bilibili.com/x/passport-login/oauth2/login",
         headers=headers,
         data=post_data,
-        cookies={
-            'sid': sid
-        }
     )
     response = r.json()
     response_code = response['code']

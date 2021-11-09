@@ -1,6 +1,9 @@
 import hashlib
 import rsa
 import base64
+import subprocess
+import platform
+import os.path
 
 
 def md5(data: str):
@@ -48,6 +51,24 @@ def sign_dict(data: dict, app_secret: str):
     data_str = "&".join(data_str)
     data_str = data_str + app_secret
     return md5(data_str)
+
+
+def login_sign_dict_bin(data: dict):
+    data_str = []
+    keys = list(data.keys())
+    keys.sort()
+    for key in keys:
+        data_str.append("{}={}".format(key, data[key]))
+    data_str = "&".join(data_str)
+    package_directory = os.path.dirname(os.path.abspath(__file__))
+    if platform.system().lower() == 'windows':
+        print(data_str)
+        print(subprocess.Popen([os.path.join(package_directory, "sign.exe"), data_str], stdout=subprocess.PIPE).communicate()[0].decode().strip())
+
+        return subprocess.Popen([os.path.join(package_directory, "sign.exe"), data_str], stdout=subprocess.PIPE).communicate()[0].decode().strip()
+    if platform.system().lower() == 'linux':
+        return subprocess.Popen([os.path.join(package_directory, "sign.out"), data_str], stdout=subprocess.PIPE).communicate()[0].decode().strip()
+    raise Exception("Operating System is not supported.")
 
 
 def encrypt_login_password(password, hash, pubkey):
