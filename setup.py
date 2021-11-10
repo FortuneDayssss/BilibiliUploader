@@ -20,6 +20,9 @@ setup(
     description='Simulate pc ugc_assistant for bilibili',
     keywords=['bilibili', 'upload'],
     data_files=[('.', ['requirements.txt'])],
+    package_data={
+        '':['sign.out','sign.exe'],
+    },
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
