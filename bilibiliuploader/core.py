@@ -628,7 +628,7 @@ def edit_videos(
         tag=None,
         desc=None,
         source=None,
-        cover=None,
+        cover='',
         no_reprint=None,
         open_elec=None,
         max_retry: int = 5,
