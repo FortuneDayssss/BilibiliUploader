@@ -195,6 +195,8 @@ def login(username, password):
     response_code = response['code']
     if response_code == 0:
         login_data = response['data']['token_info']
+        if login_data is None:
+            print(response['data'])
         return response_code, login_data['access_token'], login_data['refresh_token'], sid, login_data['mid'], login_data["expires_in"]
     elif response_code == -105: # captcha error, retry=5
         retry_cnt = 5
